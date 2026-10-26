@@ -1,0 +1,4 @@
+SAMPLE MARKS
+Linux: 90
+Python: 95
+Mathematics: 88
