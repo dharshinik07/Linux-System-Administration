@@ -10,9 +10,7 @@ A Linux System Administration microproject implemented with **Bash shell scripti
 
 > Automatic detection and access restriction. Administrator-confirmed recovery.
 
-![Menu-driven Ubuntu terminal interface](screenshots/d3-main-menu.png)
-
-[Project report](docs/Project_Report.pdf) · [Presentation](docs/Project_Presentation.pptx) · [Source code](src/ztvault.sh) · [Demo guide](docs/DEMO.md)
+[Project report](docs/Project_Report.pdf) · [Presentation](docs/Project_Presentation.pptx) · [Source code](src/ztvault.sh) 
 
 ## Team and academic details
 
@@ -32,13 +30,9 @@ A Linux System Administration microproject implemented with **Bash shell scripti
 
 - [Final project report](docs/Project_Report.pdf)
 - [PowerPoint presentation](docs/Project_Presentation.pptx)
-- [Four-person speaking script](docs/Four_Person_Speaking_Script.pdf)
 - [Bash application source](src/ztvault.sh)
 - [Ubuntu setup and operation guide](docs/SETUP.md)
-- [Live demonstration guide](docs/DEMO.md)
-- [Code explanation](docs/CODE_EXPLANATION.md)
 - [Screenshot evidence index](screenshots/README.md)
-- [GitHub upload guide](docs/GITHUB_UPLOAD.md)
 
 ## Problem and solution
 
