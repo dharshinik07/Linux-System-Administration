@@ -1,0 +1,7 @@
+STUDENT ASSIGNMENT
+Student: Demo Student
+Subject: Linux System Administration
+Topic: File Permissions
+Answer: Linux permissions control who can read, write, or execute a file.
+
+Status: Completed
