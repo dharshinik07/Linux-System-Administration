@@ -1,4 +1,13 @@
+<!-- vault-design-v1 -->
+<div align="center">
+
+![Linux](https://img.shields.io/badge/PLATFORM-Ubuntu-E95420) ![Bash](https://img.shields.io/badge/ENGINE-Bash-176B58) ![Monitor](https://img.shields.io/badge/MONITOR-systemd-285A8D)
+
 # Zero-Trust Vault
+
+**01 · Control access　 /　 02 · Detect changes　 /　 03 · Restore clean files**
+
+</div>
 
 **Zero-Trust Enterprise Storage Vault with Automated Ransomware Defense and Disaster Rollback**  
 Linux System Administration · E1ITA307 · Alliance University, Bengaluru
@@ -6,6 +15,8 @@ Linux System Administration · E1ITA307 · Alliance University, Bengaluru
 **[Project report (PDF)](submission/Project_Report.pdf) · [Presentation (PowerPoint)](submission/Project_Presentation.pptx) · [Demo screenshots](submission/screenshots/) · [Bash source](src/ztvault.sh)**
 
 A student should be able to edit an assignment without gaining access to the recovery copy. This Ubuntu project demonstrates that boundary using real Linux accounts. It also monitors a **canary**: a sample file that normal assignment work should leave untouched. If the canary changes or disappears, the vault restricts student access and records an alert. An administrator can then restore the verified backup.
+
+[Quick start](#run-the-project) · [Faculty demo](#five-minute-demonstration) · [System design](#system-design) · [Evidence](#recorded-evidence) · [Team](#team)
 
 ## Run the project
 
@@ -39,6 +50,56 @@ Open **http://localhost:8765** in your browser. Keep the terminal open; press **
 
 **Error handling to demonstrate:** Submit an empty sentence or enter the wrong confirmation word. The operation should not proceed. In the terminal menu, enter `99` to show invalid-choice handling.
 
+## System design
+
+### 01 · Who can reach the files?
+
+The browser is an administrator's local control panel. Choosing a student action makes the engine run the file operation as the student account. Linux checks that account's permissions.
+
+```mermaid
+flowchart TD
+    UI["Local web dashboard"] --> API["Python request validator"]
+    API --> B["Bash vault operations"]
+    CLI["Terminal menu"] --> B
+    B -->|runuser| W["Student: ztv_writer"]
+    W -->|read and append while unlocked| D["Working assignment"]
+    O["Outsider: ztv_outsider"] -.->|read denied| D
+    B -->|administrator action| A["Protected backup"]
+    W -.->|access denied| A
+    classDef trusted fill:#17483F,color:#FFFFFF,stroke:#398675
+    class B,A trusted
+```
+
+### 02 · What triggers containment?
+
+An assignment edit is expected. A canary edit is the incident signal. The timer runs the same integrity check that the administrator can request manually.
+
+```mermaid
+flowchart TD
+    T["systemd timer"] --> C{"Canary present and hash matches?"}
+    M["Manual check"] --> C
+    C -->|Yes| S["Report SAFE for this check"]
+    C -->|No| L["Restrict vault directory to root"]
+    L --> E["Record alert in event log"]
+    classDef alert fill:#702F35,color:#FFFFFF,stroke:#B86670
+    class L,E alert
+```
+
+### 03 · How does rollback work?
+
+```mermaid
+flowchart TD
+    R["Administrator confirms RESTORE"] --> V{"Backup checksum valid?"}
+    V -->|No| X["Stop recovery"]
+    V -->|Yes| T["Extract into staging directory"]
+    T --> F{"Restored file hashes valid?"}
+    F -->|No| X
+    F -->|Yes| P["Preserve previous working files"]
+    P --> A["Activate restored files and reopen student access"]
+    classDef recovered fill:#17483F,color:#FFFFFF,stroke:#398675
+    class A recovered
+```
+
 ## How the application works
 
 The [web interface](web/) sends a named action to the [local HTTP adapter](server.py). The adapter validates the request and invokes an allowed operation in the [Bash engine](src/ztvault.sh). The Bash engine performs the file, permission, backup and recovery operations. The systemd timer can check the canary while the browser is closed, as long as Ubuntu is running and the timer is active.
@@ -68,6 +129,14 @@ sudo tail -n 10 /var/log/ztvault/events.log
 
 The [access test](submission/screenshots/d5-access-tests.png), [incident log](submission/screenshots/d11-security-event-log.png), and [verified recovery](submission/screenshots/d12-verified-recovery.png) are evidence from the recorded **terminal demonstration**. The presentation also explains the web interface. Four portable checks passed on the compact package, covering file updates, timestamps, log parsing and request validation. Real account permissions and timer scheduling depend on the target Ubuntu installation.
 
+## Recorded evidence
+
+| Before containment · access policy | After containment · verified recovery |
+|:---:|:---:|
+| ![Terminal output for the student and outsider access checks](submission/screenshots/d5-access-tests.png) | ![Terminal output for verified backup recovery](submission/screenshots/d12-verified-recovery.png) |
+
+[See automatic containment](submission/screenshots/d10a-automatic-detection-and-containment.png) · [Inspect the event log](submission/screenshots/d11-security-event-log.png) · [Browse all screenshots](submission/screenshots/)
+
 ## Scope
 
 This is a local teaching prototype. A change that leaves the canary untouched can go undetected. Directory permissions block new student access through the vault path; they cannot stop root or revoke an already-open file handle. The single clean backup is stored on the same machine, so it does not protect against loss of the disk. **Detection and containment are automatic when monitoring is enabled; recovery requires administrator confirmation.**
@@ -82,3 +151,7 @@ This is a local teaching prototype. A change that leaves the canary untouched ca
 | Ibadul Azam | 2411021060840 |
 
 **Supervisor:** Prof. Kusuma J · Alliance School of Advanced Computing, Alliance University
+
+---
+
+**Zero-Trust Vault** · Linux System Administration · [Back to system design ↑](#system-design)
