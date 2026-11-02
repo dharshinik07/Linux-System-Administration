@@ -4,7 +4,7 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 if (( EUID != 0 )); then echo 'Run: sudo bash run.sh'; exit 1; fi
 command -v python3 >/dev/null || { echo 'Install Python: sudo apt install python3'; exit 1; }
 if [[ ! -d /srv/ztvault/data ]]; then
-    bash scripts/setup.sh
+    bash src/setup.sh
 fi
 for directory in /srv/ztvault/data /var/lib/ztvault/backups /var/lib/ztvault/baselines /var/lib/ztvault/recovery /var/log/ztvault; do
     [[ -d "$directory" && ! -L "$directory" ]] || { echo "Incomplete existing installation: $directory"; exit 1; }

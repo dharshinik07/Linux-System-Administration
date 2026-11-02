@@ -23,7 +23,7 @@ for directory in "$VAULT" "$BASE/backups" \
 done
 exec 9>"$BASE/operation.lock"
 log_event() {
-    printf '%s | %s\n' "$(date '+%F %T')" "$*" >> "$LOG"
+    printf '%s | %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$*" >> "$LOG"
 }
 require_open() {
     if [[ -f "$INCIDENT" ]]; then
@@ -65,7 +65,7 @@ update_assignment() {
     if printf '%s\n' "$note" |
         runuser -u ztv_writer -- tee -a "$VAULT/assignment.txt" \
         >/dev/null; then
-        echo "SUCCESS: Assignment updated."
+        echo "SUCCESS: Assignment updated and saved to disk."
         log_event "UPDATE: Student added a sentence to the assignment."
     else
         echo "ERROR: Could not update the assignment."
@@ -245,12 +245,14 @@ enable_monitoring() {
         echo "ERROR: Create the clean backup first."
         return 0
     fi
+    install -d -o root -g root -m 0755 /usr/local/lib/ztvault-web
+    install -o root -g root -m 0750 "${BASH_SOURCE[0]}" /usr/local/lib/ztvault-web/monitor.sh
     cat > /etc/systemd/system/ztvault-monitor.service <<'EOF'
 [Unit]
 Description=Student vault canary check
 [Service]
 Type=oneshot
-ExecStart=/usr/local/sbin/ztvault --monitor
+ExecStart=/usr/local/lib/ztvault-web/monitor.sh --monitor
 UMask=0077
 EOF
     cat > /etc/systemd/system/ztvault-monitor.timer <<'EOF'
@@ -287,6 +289,25 @@ show_status() {
         echo "Automatic monitoring: INACTIVE"
     fi
 }
+# Browser adapter: fixed operations; all operations share the existing flock.
+if [[ "${1:-}" == "--web" ]]; then
+    flock -w 15 9 || { echo "ERROR: Vault is busy. Try again."; exit 1; }
+    case "${2:-}" in
+        view) view_files ;;
+        append) update_assignment ;;
+        permissions) test_permissions ;;
+        backup) create_backup ;;
+        check) monitor ;;
+        simulate) simulate_incident ;;
+        blocked) test_blocked_write ;;
+        restore) recover_files ;;
+        logs) show_log ;;
+        enable) enable_monitoring ;;
+        status) show_status ;;
+        *) echo "ERROR: Unknown operation."; exit 1 ;;
+    esac
+    exit 0
+fi
 if [[ "${1:-}" == "--monitor" ]]; then
     flock -n 9 || exit 0
     monitor

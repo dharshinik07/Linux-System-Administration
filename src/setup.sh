@@ -5,7 +5,7 @@ PATH=/usr/sbin:/usr/bin:/sbin:/bin
 export PATH
 umask 077
 if (( EUID != 0 )); then
-    echo "Run from the repository: sudo bash scripts/setup.sh" >&2
+    echo "Run from the repository: sudo bash src/setup.sh" >&2
     exit 1
 fi
 project_root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
